@@ -1,0 +1,9 @@
+﻿  Source.cpp
+C:\Users\hp\source\repos\OS_Project\OS_Project\Source.cpp(167,9): warning C4018: '<': signed/unsigned mismatch
+C:\Users\hp\source\repos\OS_Project\OS_Project\Source.cpp(177,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\hp\source\repos\OS_Project\OS_Project\Source.cpp(194,10): warning C4018: '<': signed/unsigned mismatch
+C:\Users\hp\source\repos\OS_Project\OS_Project\Source.cpp(219,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\hp\source\repos\OS_Project\OS_Project\Source.cpp(222,24): warning C4018: '<': signed/unsigned mismatch
+C:\Users\hp\source\repos\OS_Project\OS_Project\Source.cpp(227,22): warning C4018: '<': signed/unsigned mismatch
+C:\Users\hp\source\repos\OS_Project\OS_Project\Source.cpp(251,24): warning C4018: '<': signed/unsigned mismatch
+  OS_Project.vcxproj -> C:\Users\hp\source\repos\OS_Project\Debug\OS_Project.exe
