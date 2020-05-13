@@ -23,6 +23,7 @@ struct frame {
 	int used;
 };
 
+
 bool compFCFS(pcb a, pcb b) {
 	return a.arrivalTime < b.arrivalTime;
 }
@@ -100,7 +101,9 @@ int main() {
 			continue;
 		}
 	}
-
+	for (int i = 0; i < phymem.size(); i++) {
+		phymem[i].fnum = -1;
+	}
 	for (int i = 0; i < pagetable.size(); i++)
 	{
 		if (pagetable[i].size() == 0) {
@@ -111,11 +114,34 @@ int main() {
 			for (int j = 0; j < pagetable[i].size(); j++)
 			{
 				cout << pagetable[i][j] << "   ";
+				phymem[pagetable[i][j]].fnum = arr[i].id;
 			}
 		}
 		cout << endl;
 	}
+	for (int i = 0; i < phymem.size(); i++) {
+		for (int j = 0; j < 11; j++) {
+			cout << '\'' ;
+		}
+		cout << endl;
+		cout << "|";
+		if (phymem[i].fnum == -1) {
+			cout << "  ";
+			cout << "empty";
+			cout << "  ";
+		}
+		else {
+			cout << "    ";
+			cout << "p" << phymem[i].fnum;
+			cout << "   ";
+		}
+		cout << "|" << endl;
 
+	}
+	for (int j = 0; j < 11; j++) {
+		cout << '\'';
+	}
+	cout << endl;
 	int logicalAddr, prid;
 	cout << "can you please enter the process id:" << endl;
 	cin >> prid;
