@@ -180,6 +180,13 @@ int main() {
 	for (int i = 0; i < 5; i++) {
 		pin >> arr[i].id >> arr[i].arrivalTime >> arr[i].cpuBurst >> arr[i].proccesSize;
 	}
+	cout << phym << endl;
+	cout << pages << endl;
+	cout << q << endl;
+	cout << cs << endl;
+	for (int i = 0; i < 5; i++) {
+		cout << arr[i].id << " " << arr[i].arrivalTime << " " << arr[i].cpuBurst << " " << arr[i].proccesSize << endl;
+	}
 	//for FCFS
 	toSortProcessesFCFS(arr);
 	//to find finish time 
@@ -226,16 +233,17 @@ int main() {
 	int nop = arr.size();
 	while (notFinshed) {
 		if (i < arr.size()) {
-				if (arr[i].arrivalTime <= timect) {
-					ready.push_back(arr[i]);
-					i++;
-				}
+			if (arr[i].arrivalTime <= timect) {
+				ready.push_back(arr[i]);
+				timect = arr[i].arrivalTime;
+				i++;
+			}
 
-				else {
-					timect++;
-					continue;
-				}
-			
+			else {
+				timect++;
+				continue;
+			}
+
 		}
 		for (int j = 0; j < ready.size(); j++)
 		{
@@ -248,20 +256,26 @@ int main() {
 				v.push_back(qua);
 			}
 			else {
-				qua.time = ready[j].cpuBurst;
-				ready[j].cpuBurst = 0;
-				// increase time counter for context swithch and for the time of execution
-				timect += cs + ready[j].cpuBurst;
-				v.push_back(qua);
+				if (ready[j].cpuBurst > 0) {
+					qua.time = ready[j].cpuBurst;
+
+					timect += cs + ready[j].cpuBurst;
+					ready[j].cpuBurst = 0;
+					// increase time counter for context swithch and for the time of execution
+
+					v.push_back(qua);
+					//ready.erase(ready.begin() + j);
+				}
 			}
 			// make  sure it work if they reach at the same time
 			// hint for loop
 			if (i < arr.size()) {
-					if (arr[i].arrivalTime <= timect) {
-						ready.push_back(arr[i]);
-						i++;
-					}
-				
+				if (arr[i].arrivalTime <= timect) {
+					ready.push_back(arr[i]);
+					timect = arr[i].arrivalTime;
+					i++;
+				}
+
 			}
 
 		}
@@ -278,10 +292,8 @@ int main() {
 		if (ready.size() == 0) {
 			notFinshed = false;
 		}
-
-
 	}
-	
+
 	//cout << arr.size() << endl;
 	for (int i = 0; i < arr.size(); i++) {
 		arr[i].waitingTime = 0;
@@ -297,7 +309,12 @@ int main() {
 		for (int j = 0; j < v.size(); j++) {
 			if (v[j].pid == arr[i].id) {
 				if (first) {
-					arr[i].waitingTime = time - arr[i].arrivalTime;
+					if (time > arr[i].arrivalTime) {
+						arr[i].waitingTime = time - arr[i].arrivalTime;
+					}
+					else {
+						arr[i].waitingTime = 0;
+					}
 					tSinceLastFinish = time + v[j].time;
 					first = false;
 				}
@@ -317,9 +334,16 @@ int main() {
 	avgWT(arr);
 	//to find avg TT
 	avgTT(arr);
-     
+
 	//to find cpu UTILIZATION
-	cpuUTILIZATION(arr,cs);
+	int sumForcpuUTILIZATION = 0;
+	double avg = 0;
+	for (int i = 0; i < 5; i++) {
+		sumForcpuUTILIZATION += arr[i].cpuBurst;
+	}
+	int ncs = (v.size()-1)*cs;
+	avg = (double(sumForcpuUTILIZATION) / double((sumForcpuUTILIZATION + 4 * ncs))) * 100;
+	cout << "cpu UTILIZATION = " << avg << endl;
 	showInformationRR(arr);
 	int gants = 0;
 	for (int hh = 0; hh < v.size(); hh++) {
@@ -359,7 +383,6 @@ int main() {
 	}
 	cout << endl;
 	cout << "*****************************************************************************************" << endl;
-
 
 	system("pause");
 	return 0;
