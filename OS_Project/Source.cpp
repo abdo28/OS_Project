@@ -17,6 +17,502 @@ struct quant {
 	int pid;
 	int time;
 };
+
+bool isZero(pcb i)
+{
+	return i.cpuBurst == 0;
+}
+
+int finishTimeOfThePreviosProcess;
+bool compSJF(pcb a, pcb b)
+{
+	//give true value based on the burst time and if is arrived 
+	if (a.cpuBurst < b.cpuBurst && a.arrivalTime <= finishTimeOfThePreviosProcess)
+		return true;
+	else return false;
+}
+
+bool compFCFS(pcb a, pcb b) {
+	//give true if process a arrived before process b
+	//to help sorting based on arrival time 
+	if (a.arrivalTime < b.arrivalTime)
+		return true;
+	else return false;
+}
+
+
+void FCFS(vector<pcb>& arr, int cs) {
+	sort(arr.begin(), arr.end(), compFCFS);//sort the processes based on arrival time (FCFS)
+	arr[0].waitingTime = 0;//initial value of the first process to be executed
+	arr[0].finishTime = arr[0].waitingTime + arr[0].cpuBurst;
+	for (int i = 1; i < 5; i++)
+		arr[i].finishTime = arr[i - 1].finishTime + cs + arr[i].cpuBurst;
+
+	// to find WT
+	arr[0].waitingTime = 0;
+	for (int i = 1; i < 5; i++)
+		arr[i].waitingTime = arr[i - 1].finishTime + cs - arr[i].arrivalTime;
+
+	//to find TT
+	for (int i = 0; i < 5; i++)
+		arr[i].turnedArounedTime = arr[i].finishTime - arr[i].arrivalTime;
+
+	//to find WT AVG
+	int sumForWT = 0;
+	for (int i = 0; i < 5; i++) {
+		sumForWT += arr[i].waitingTime;
+	}
+	cout << "the avg W.T = " << (double)sumForWT / 5 << endl;
+
+	//to find TT AVG
+	int sumForTT = 0;
+	for (int i = 0; i < 5; i++) {
+		sumForTT += arr[i].turnedArounedTime;
+	}
+	cout << "the avg T.T = " << (double)sumForTT / 5 << endl;
+}
+void SJF(vector<pcb>& arr, int cs) {
+	sort(arr.begin(), arr.end(), compFCFS);//sorting array of processes first, based on arrival time
+	//initializ the first process 
+	arr[0].finishTime = arr[0].cpuBurst + arr[0].arrivalTime;
+	arr[0].turnedArounedTime = arr[0].finishTime - arr[0].arrivalTime;
+	arr[0].waitingTime = 0;
+	for (int i = 1; i < 5; i++)
+	{
+		finishTimeOfThePreviosProcess = arr[i - 1].finishTime;
+		sort(arr.begin() + i, arr.end(), compSJF);
+		arr[i - 1].finishTime < arr[i].arrivalTime ? arr[i].finishTime = cs + arr[i].cpuBurst + arr[i].arrivalTime :
+			arr[i].finishTime = arr[i - 1].finishTime + cs + arr[i].cpuBurst;
+		arr[i].turnedArounedTime = arr[i].finishTime - arr[i].arrivalTime;
+		arr[i].waitingTime = arr[i - 1].finishTime + cs - arr[i].arrivalTime;
+	}
+	//to find WT AVG
+	int sumForWT = 0;
+	for (int i = 0; i < 5; i++) {
+		sumForWT += arr[i].waitingTime;
+	}
+	cout << "the avg W.T = " << (double)sumForWT / 5 << endl;
+
+	//to find TT AVG
+	int sumForTT = 0;
+	for (int i = 0; i < 5; i++) {
+		sumForTT += arr[i].turnedArounedTime;
+	}
+	cout << "the avg T.T = " << (double)sumForTT / 5 << endl;
+}
+void cpuUTILIZATION(vector<pcb>& arr, int cs) {
+	//to find cpu utilization
+	int sumForcpuUTILIZATION = 0;
+	double avg = 0;
+	for (int i = 0; i < 5; i++) {
+		sumForcpuUTILIZATION += arr[i].cpuBurst;
+	}
+	avg = (double(sumForcpuUTILIZATION) / double((sumForcpuUTILIZATION + 4 * cs))) * 100;
+	cout << "cpu UTILIZATION = " << avg << endl;
+}
+void GantChartForRR(vector<quant>& v, int cs) {
+	if (cs == 0)
+	{
+		cout << "|-----------|";
+		for (int i = 1; i < v.size(); i++) {
+
+			if (i == v.size()-1) {
+				cout << "-----------|";
+				continue;
+			}
+			cout << "-----------|";
+		}
+		cout << endl;
+		cout << "|    " << "p " << v[0].pid << "    |";
+		for (int i = 1; i < v.size(); i++) {
+
+			if (i == v.size()-1) {
+				cout << "    " << "p " << v[i].pid << "    |";
+				continue;
+			}
+			cout << "    " << "p " << v[i].pid << "    |";
+		}
+		cout << endl;
+		cout << "|-----------|";
+		for (int i = 1; i < v.size(); i++) {
+
+			if (i == v.size()-1) {
+				cout << "-----------|";
+				continue;
+			}
+			cout << "-----------|";
+		}
+		cout << endl;
+		cout << 0 << "         "
+			<< v[0].time;
+		int timeF = v[0].time;
+		for (int i = 1; i < v.size(); i++) {
+			if (i == v.size()-1) {
+				timeF += v[i].time;
+				cout << "        " << timeF;
+				continue;
+			}
+			timeF += v[i].time;
+			cout << "           " << timeF + v[i].time;
+
+
+		}
+		cout << endl;
+	}
+	else {
+		cout << "|-----------|---|";
+		for (int i = 1; i < v.size(); i++) {
+
+			if (i == v.size()-1) {
+				cout << "-----------|";
+				continue;
+			}
+			cout << "-----------|---|";
+		}
+		cout << endl;
+		cout << "|    " << "p " << v[0].pid << "    |cs |";
+		for (int i = 1; i < v.size(); i++) {
+
+			if (i == v.size()-1) {
+				cout << "    " << "p " << v[i].pid << "    |";
+				continue;
+			}
+			cout << "    " << "p " << v[i].pid << "    |cs |";
+		}
+		cout << endl;
+		cout << "|-----------|---|";
+		for (int i = 1; i < v.size(); i++) {
+
+			if (i == v.size()-1) {
+				cout << "-----------|";
+				continue;
+			}
+			cout << "-----------|---|";
+		}
+		cout << endl;
+		cout << 0 << "          "
+			<< v[0].time << "  " << v[0].time + cs;
+		int resTime = v[0].time + cs;
+		for (int i = 1; i < v.size(); i++) {
+			if (i == v.size()-1) {
+				resTime += v[i].time;
+				cout << "          " << resTime << "  ";
+				continue;
+			}
+			resTime += v[i].time;
+			cout << "          " << resTime << "  " << resTime + cs;
+			resTime += cs;
+
+		}
+		cout << endl;
+	}
+}
+void GantChartForFCFSANDSJF(vector<pcb>& arr, int cs) {
+	if (cs == 0)
+	{
+		cout << "|-----------|";
+		for (int i = 1; i < 5; i++) {
+
+			if (i == 4) {
+				cout << "-----------|";
+				continue;
+			}
+			cout << "-----------|";
+		}
+		cout << endl;
+		cout << "|    " << "p " << arr[0].id << "    |";
+		for (int i = 1; i < 5; i++) {
+
+			if (i == 4) {
+				cout << "    " << "p " << arr[i].id << "    |";
+				continue;
+			}
+			cout << "    " << "p " << arr[i].id << "    |";
+		}
+		cout << endl;
+		cout << "|-----------|";
+		for (int i = 1; i < 5; i++) {
+
+			if (i == 4) {
+				cout << "-----------|";
+				continue;
+			}
+			cout << "-----------|";
+		}
+		cout << endl;
+		cout << arr[0].finishTime - arr[0].cpuBurst << "         "
+			<< arr[0].finishTime;
+		for (int i = 1; i < 5; i++) {
+			if (i == 4) {
+				cout << "        " << arr[i].finishTime;
+				continue;
+			}
+			cout << "           " << arr[i].finishTime;
+
+
+		}
+		cout << endl;
+	}
+	else {
+		cout << "|-----------|---|";
+		for (int i = 1; i < 5; i++) {
+
+			if (i == 4) {
+				cout << "-----------|";
+				continue;
+			}
+			cout << "-----------|---|";
+		}
+		cout << endl;
+		cout << "|    " << "p " << arr[0].id << "    |cs |";
+		for (int i = 1; i < 5; i++) {
+
+			if (i == 4) {
+				cout << "    " << "p " << arr[i].id << "    |";
+				continue;
+			}
+			cout << "    " << "p " << arr[i].id << "    |cs |";
+		}
+		cout << endl;
+		cout << "|-----------|---|";
+		for (int i = 1; i < 5; i++) {
+
+			if (i == 4) {
+				cout << "-----------|";
+				continue;
+			}
+			cout << "-----------|---|";
+		}
+		cout << endl;
+		cout << arr[0].finishTime - arr[0].cpuBurst << "          "
+			<< arr[0].finishTime << "  " << arr[0].finishTime + cs;
+		for (int i = 1; i < 5; i++) {
+			if (i == 4) {
+				cout << "          " << arr[i].finishTime << "  ";
+				continue;
+			}
+			cout << "          " << arr[i].finishTime << "  " << arr[i].finishTime + cs;
+
+
+		}
+		cout << endl;
+	}
+
+
+}
+
+void showInformationForFCFSandSJF(vector<pcb>& arr, int cs) {
+	cout << "id" << "\t" << "   arival time" << "\t" << "   cpu burst" << "\t"
+		<< "waiting time" << "\t" << "turned arouned time" << "\t" << "   finish time" << endl;
+	for (int i = 0; i < 5; i++)
+		cout << arr[i].id << "\t\t" << arr[i].arrivalTime
+		<< "\t\t" << arr[i].cpuBurst
+		<< "\t\t" << arr[i].waitingTime
+		<< "\t\t" << arr[i].turnedArounedTime
+		<< "\t\t\t" << arr[i].finishTime << endl;
+	cout << endl << endl;
+	cout << endl;
+	GantChartForFCFSANDSJF(arr, cs);
+	cout << endl;
+	cout << "*****************************************************************************************" << endl;
+
+}
+void showInfoRR(vector<pcb>& arr) {
+	cout << "id" << "\t" << "   arival time" << "\t" << "   cpu burst" << "\t"
+		<< "waiting time" << "\t" << "turned arouned time" << "\t" << "   finish time" << endl;
+	for (int i = 0; i < 5; i++)
+		cout << arr[i].id << "\t\t" << arr[i].arrivalTime
+		<< "\t\t" << arr[i].cpuBurst
+		<< "\t\t" << arr[i].waitingTime
+		<< "\t\t" << arr[i].turnedArounedTime
+		<< "\t\t\t" << arr[i].finishTime << endl;
+	cout << endl;
+	cout << endl;
+}
+void showInformationForRR(vector<pcb>& arr, int cs, vector<quant>& v) {
+	for (int i = 0; i < arr.size(); i++) {
+		arr[i].waitingTime = 0;
+		arr[i].finishTime = 0;
+		arr[i].turnedArounedTime = 0;
+	}
+	//waitting time calculating
+
+	for (int i = 0; i < arr.size(); i++) {
+		int time = 0;
+		bool first = true;
+		int tSinceLastFinish = 0;
+		for (int j = 0; j < v.size(); j++) {
+			if (v[j].pid == arr[i].id) {
+				if (first) {
+					arr[i].waitingTime = time - arr[i].arrivalTime;
+					tSinceLastFinish = time + v[j].time;
+					first = false;
+				}
+				else {
+					arr[i].waitingTime += time - tSinceLastFinish;
+					tSinceLastFinish = time + v[j].time;
+				}
+			}
+			arr[i].finishTime = tSinceLastFinish;
+			arr[i].turnedArounedTime = arr[i].finishTime - arr[i].arrivalTime;
+			time += v[j].time + cs;
+
+		}
+	}
+	cout << "for Round Robin..." << endl;
+	//to find WT AVG
+	int sumForWT = 0;
+	for (int i = 0; i < 5; i++) {
+		sumForWT += arr[i].waitingTime;
+	}
+	cout << "the avg W.T = " << (double)sumForWT / 5 << endl;
+
+	//to find TT AVG
+	int sumForTT = 0;
+	for (int i = 0; i < 5; i++) {
+		sumForTT += arr[i].turnedArounedTime;
+	}
+	cout << "the avg T.T = " << (double)sumForTT / 5 << endl;
+	cpuUTILIZATION(arr, cs);
+	showInfoRR(arr);
+	GantChartForRR(v, cs);
+
+}
+vector<quant> RR(vector<pcb>& arr, int cs, int q) {
+	vector<pcb>ready;
+	vector<quant>v;
+	int timect = 0;
+	bool notFinshed = true;
+	int i = 0;
+	int nop = arr.size();
+	bool waitfirst = true;
+	while (notFinshed) {
+		if (i < arr.size()) {
+			if (arr[i].arrivalTime <= timect) {
+				ready.push_back(arr[i]);
+				i++;
+				waitfirst = false;
+
+			}
+
+			else {
+				if (waitfirst) {
+					timect++;
+					continue;
+				}
+			}
+
+		}
+		for (int j = 0; j < ready.size(); j++)
+		{
+			if (i < arr.size()) {
+				if (arr[i].arrivalTime <= timect) {
+					ready.push_back(arr[i]);
+					i++;
+
+				}
+
+			}
+			quant qua;
+			qua.pid = ready[j].id;
+			if (ready[j].cpuBurst >= q) {
+				qua.time = q;
+				ready[j].cpuBurst -= q;
+				timect += cs + q;
+				v.push_back(qua);
+			}
+			else {
+				if (ready[j].cpuBurst > 0) {
+					qua.time = ready[j].cpuBurst;
+					timect += cs + ready[j].cpuBurst;
+					ready[j].cpuBurst = 0;
+					v.push_back(qua);
+				}
+			}
+			if (i < arr.size()) {
+				if (arr[i].arrivalTime <= timect) {
+					ready.push_back(arr[i]);
+
+					i++;
+
+				}
+
+			}
+
+		}
+		vector<pcb>::iterator newIter = remove_if(ready.begin(), ready.end(), isZero);
+		ready.resize(newIter - ready.begin());
+
+		if (ready.size() == 0) {
+			notFinshed = false;
+		}
+	}
+	return v;
+}
+
+
+
+int main() {
+	ifstream pin;
+	pin.open("process.txt");
+	int PhysicalMemorySize;
+	int pageSize;
+	int q;
+	int cs;
+	vector<pcb>arr(5);//array of struct that have the processes states (pcb)
+	pin >> PhysicalMemorySize;
+	pin >> pageSize;
+	pin >> q;
+	pin >> cs;
+	for (int i = 0; i < 5; i++) {
+		pin >> arr[i].id >> arr[i].arrivalTime >> arr[i].cpuBurst >> arr[i].proccesSize;
+	}
+	//for FCFS
+
+	cout << "For FCFS...." << endl;
+	FCFS(arr, cs);
+	//to find cpu UTILIZATION
+	cpuUTILIZATION(arr, cs);
+	//show information about FCFS
+	showInformationForFCFSandSJF(arr, cs);
+
+	//for SJF 
+
+	cout << "For SJF...." << endl;
+	SJF(arr, cs);
+	//find CPU utilization
+	cpuUTILIZATION(arr, cs);
+	//SHOW INFORMATION ABOUT SJF
+	showInformationForFCFSandSJF(arr, cs);
+	
+	sort(arr.begin(), arr.end(), compFCFS);
+	vector<quant> v= RR(arr,cs, q);
+	showInformationForRR(arr, cs, v);
+	
+	system("pause");
+	return 0;
+}
+
+/*
+//OS_Project
+#include<iostream>
+#include<fstream>
+#include<vector>
+#include<algorithm>
+using namespace std;
+struct pcb {
+	int id;
+	int arrivalTime;
+	int cpuBurst;
+	int proccesSize;
+	int turnedArounedTime;
+	int waitingTime;
+	int finishTime;
+};
+struct quant {
+	int pid;
+	int time;
+};
 struct LogicalAddress {
 	int p;//page number
 	int d;//page offset
@@ -221,79 +717,7 @@ int main() {
 
 
 
-
-	// RR
-	toSortProcessesFCFS(arr);
-	// USE q
-	vector<pcb> ready;
-	vector<quant>v;
-	int timect = 0;
-	bool notFinshed = true;
-	int i = 0;
-	int nop = arr.size();
-	while (notFinshed) {
-		if (i < arr.size()) {
-			if (arr[i].arrivalTime <= timect) {
-				ready.push_back(arr[i]);
-				timect = arr[i].arrivalTime;
-				i++;
-			}
-
-			else {
-				timect++;
-				continue;
-			}
-
-		}
-		for (int j = 0; j < ready.size(); j++)
-		{
-			quant qua;
-			qua.pid = ready[j].id;
-			if (ready[j].cpuBurst > q) {
-				qua.time = q;
-				ready[j].cpuBurst -= q;
-				timect += cs + q;
-				v.push_back(qua);
-			}
-			else {
-				if (ready[j].cpuBurst > 0) {
-					qua.time = ready[j].cpuBurst;
-
-					timect += cs + ready[j].cpuBurst;
-					ready[j].cpuBurst = 0;
-					// increase time counter for context swithch and for the time of execution
-
-					v.push_back(qua);
-					//ready.erase(ready.begin() + j);
-				}
-			}
-			// make  sure it work if they reach at the same time
-			// hint for loop
-			if (i < arr.size()) {
-				if (arr[i].arrivalTime <= timect) {
-					ready.push_back(arr[i]);
-					timect = arr[i].arrivalTime;
-					i++;
-				}
-
-			}
-
-		}
-
-		vector<pcb>::iterator newIter = remove_if(ready.begin(), ready.end(), isZero);
-		ready.resize(newIter - ready.begin());
-		//for (auto ii = ready.begin(); ii != ready.end(); ++ii) {
-			//if (ii->cpuBurst == 0) {
-				//ready.erase(ii);
-					//ii--;
-			//}
-		//}
-
-		if (ready.size() == 0) {
-			notFinshed = false;
-		}
-	}
-
+	
 	//cout << arr.size() << endl;
 	for (int i = 0; i < arr.size(); i++) {
 		arr[i].waitingTime = 0;
@@ -386,7 +810,7 @@ int main() {
 
 	system("pause");
 	return 0;
-}
+}*/
 /*
 
 #include<iostream>
