@@ -17,12 +17,24 @@ struct quant {
 	int pid;
 	int time;
 };
+// the frame in physical memory
+struct frame {
+	//int pid;
+	int frameNum;
+	int frameUsed;
+};
+int randomGeneratours(vector<int>& avframe) {
+
+	int genindex = rand() % avframe.size();
+	int result = avframe[genindex];
+	avframe.erase(avframe.begin() + genindex);
+	return result;
+}
 
 bool isZero(pcb i)
 {
 	return i.cpuBurst == 0;
 }
-
 int finishTimeOfThePreviosProcess;
 bool compSJF(pcb a, pcb b)
 {
@@ -453,6 +465,7 @@ vector<quant> RR(vector<pcb>& arr, int cs, int q) {
 
 
 int main() {
+	
 	ifstream pin;
 	pin.open("process.txt");
 	int PhysicalMemorySize;
@@ -467,29 +480,175 @@ int main() {
 	for (int i = 0; i < 5; i++) {
 		pin >> arr[i].id >> arr[i].arrivalTime >> arr[i].cpuBurst >> arr[i].proccesSize;
 	}
+	vector<quant> v;
+	vector<pcb>temparr;
 	//for FCFS
+	int ch;
+	cout << "__________________Abd___Amor" << endl;
+	cout << "enter one of the choices" << endl;
+	cout << "1. part1" << endl;
+	cout << "2. part2" << endl;
+	cout << "3. exit" << endl;
+	cin >> ch;
+	while (ch != 3) {
+		switch (ch) {
+		case 1:
+			cout << "For FCFS...." << endl;
+			FCFS(arr, cs);
+			//to find cpu UTILIZATION
+			cpuUTILIZATION(arr, cs);
+			//show information about FCFS
+			showInformationForFCFSandSJF(arr, cs);
 
-	cout << "For FCFS...." << endl;
-	FCFS(arr, cs);
-	//to find cpu UTILIZATION
-	cpuUTILIZATION(arr, cs);
-	//show information about FCFS
-	showInformationForFCFSandSJF(arr, cs);
+			//for SJF 
 
-	//for SJF 
+			cout << "For SJF...." << endl;
+			SJF(arr, cs);
+			//find CPU utilization
+			cpuUTILIZATION(arr, cs);
+			//SHOW INFORMATION ABOUT SJF
+			showInformationForFCFSandSJF(arr, cs);
+			//RR
+			
+			for (int i = 0; i < arr.size(); i++)
+				temparr.push_back(arr[i]);
 
-	cout << "For SJF...." << endl;
-	SJF(arr, cs);
-	//find CPU utilization
-	cpuUTILIZATION(arr, cs);
-	//SHOW INFORMATION ABOUT SJF
-	showInformationForFCFSandSJF(arr, cs);
+			sort(temparr.begin(), temparr.end(), compFCFS);
+			 v = RR(temparr, cs, q);
+			showInformationForRR(temparr, cs, v);
+			system("pause");
+			break;
+		case 2:
+			int frameNum = PhysicalMemorySize / pageSize;
+			// this is litrally the physical memory 
+			vector<frame>physicalMemory(frameNum);
+			vector<int>AvailableFrames(frameNum);
+			for (int i = 0; i < frameNum; i++) {
+				AvailableFrames[i] = i;
+			}
+
+
+
+			// here we are creating the page table for each proccess
+			// we can create vector of vector but here we want to create five seperate vectors for the process
+			// here we are depending on the indexing of the array not hte process id when it comes on pagetablep*
+			//  int innerfreg; we will add this if thet innerfreg is possible at 
+			// declaring proccess table for all the processes
+
+			sort(arr.begin(), arr.end(), compFCFS);//sort processes based on arrival time 
+			vector<vector<int>>pageTable(5);
+			for (int i = 0; i < 5; i++)
+			{
+				vector<int>v;
+				pageTable[i] = v;
+			}
+			// first process " arr index 0 "
+			// random generatour
+			int AvailableSize = PhysicalMemorySize;
+			for (int i = 0; i < arr.size(); i++)
+			{
+				if (arr[i].proccesSize <= AvailableSize) {
+					int framenum = arr[i].proccesSize / pageSize;
+					for (int j = 0; j < framenum; j++)
+					{
+						int f = randomGeneratours(AvailableFrames);
+						pageTable[i].push_back(f);
+
+					}
+					AvailableSize -= arr[i].proccesSize;
+				}
+
+				else {
+					continue;
+				}
+			}
+			for (int i = 0; i < physicalMemory.size(); i++) {
+				physicalMemory[i].frameNum = -1;
+			}
+			for (int i = 0; i < pageTable.size(); i++)
+			{
+				if (pageTable[i].size() == 0) {
+					cout << "there was no room for the procces #" << arr[i].id;
+				}
+				else {
+					cout << "page table for procces #" << arr[i].id << ":";
+					for (int j = 0; j < pageTable[i].size(); j++)
+						cout << "page" << j << "\t";
+					cout << endl;
+					cout << "\t\t\t";
+					for (int j = 0; j < pageTable[i].size(); j++)
+					{
+
+						cout << "frame" << pageTable[i][j] << "\t";
+						physicalMemory[pageTable[i][j]].frameNum = arr[i].id;
+					}
+				}
+				cout << endl;
+			}
+			cout << endl;
+			cout << "Memory Map Part ...." << endl << endl;
+			for (int i = 0; i < physicalMemory.size(); i++) {
+				for (int j = 0; j < 11; j++) {
+					cout << '\'';
+				}
+				cout << endl;
+				cout << "|";
+				if (physicalMemory[i].frameNum == -1) {
+					cout << "  ";
+					cout << "empty";
+					cout << "  ";
+				}
+				else {
+					cout << "    ";
+					cout << "p" << physicalMemory[i].frameNum;
+					cout << "   ";
+				}
+				cout << "|" << endl;
+
+			}
+			for (int j = 0; j < 11; j++) {
+				cout << '\'';
+			}
+			cout << endl;
+			int logicalAddr, prid;
+			cout << "can you please enter the process id:" << endl;
+			cin >> prid;
+			cout << "can you please enter a logical address:" << endl;
+
+			cin >> logicalAddr;
+
+
+			int i;
+			for (i = 0; i < pageTable.size(); i++)
+			{
+				if (arr[i].id == prid) {
+					break;
+				}
+			}
+			if (pageTable[i].size() == 0) {
+				cout << "Warning your proccess is not stored" << endl;
+			}
+			else {
+				int pagenumber = logicalAddr / pageSize;
+				int offset = logicalAddr % pageSize;
+				int pyaddr = ((pageTable[i][pagenumber]) * (1 + pageSize)) + offset;
+				cout << "the physical address : " << pyaddr << endl;
+			}
+			system("pause");
+			break;
+		}
+		system("cls");
+		cout << "__________________Abd___Amor" << endl;
+		cout << "enter one of the choices" << endl;
+		cout << "1. part1" << endl;
+		cout << "2. part2" << endl;
+		cout << "3. exit" << endl;
+		cin >> ch;
+		
+		
+
+	}
 	
-	sort(arr.begin(), arr.end(), compFCFS);
-	vector<quant> v= RR(arr,cs, q);
-	showInformationForRR(arr, cs, v);
-	
-	system("pause");
 	return 0;
 }
 
